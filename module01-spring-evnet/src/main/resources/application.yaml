@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: module01-spring-event
+  datasource:
+    url: jdbc:mysql://localhost:3306/wanted_lms
+    username: wanted
+    password : wanted
+    driver-class-name : com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
