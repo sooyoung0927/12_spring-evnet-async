@@ -25,6 +25,7 @@ public class CompleteSummaryService {
 
         log.info("[section03] ✅비동기+CompletableFuture✅수강 완료 시 진행되는 이벤트 작업 종료 / 작업 중인 Thread = {}", Thread.currentThread().getName());
 
+        // 미래에 비동기 처리가 되고서 설정해둔 결과
         return CompletableFuture.completedFuture(summary);
     }
 }

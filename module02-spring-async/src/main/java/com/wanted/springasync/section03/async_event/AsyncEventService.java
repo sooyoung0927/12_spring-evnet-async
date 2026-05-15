@@ -69,6 +69,8 @@ public class AsyncEventService {
         *  */
         // 수강 완료 시 수강 완료 요약 정보 생성은 비동기로 처리한다
         completeSummaryService.createSummaryAsync(enrollmentId).thenAccept(
+                // 비동기 결과 -> 비동기 결과가 도출 되었을 때 실행할 비즈니스 로직(비동기 결과)
+                // 이런식으로 활용할 수 있게 된다
                 summary ->
                         log.info("[section03] CompletableFuture 콜백 실행, summary = {}, thread ={}",
                         summary,
