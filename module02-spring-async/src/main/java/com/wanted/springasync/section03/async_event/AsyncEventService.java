@@ -8,6 +8,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 @Slf4j
 public class AsyncEventService {
@@ -81,6 +83,40 @@ public class AsyncEventService {
 
         return CompletionSummaryResponse.accepted(
                 "메인 흐름 완료. 비동기 수강 요약 생성은 백그라운드에서 진행 중",
+                start
+        );
+    }
+
+    public CompletionSummaryResponse waitrequestCompletionSummary(Long enrollmentId) {
+
+        long start = System.currentTimeMillis();
+
+        log.info("[section03] 수강 완료 요청 대기 시작 / 작업 처리 중인 스레드 Thread ={}",Thread.currentThread().getName());
+
+        // 비동기 메서드 호출
+        // 비동기 메서드의 결과 값을 담을 future 변수 선언
+        CompletableFuture<String> future = completeSummaryService.createSummaryAsync(enrollmentId);
+        // 별도의 스레드에서 작업이 끝나면 그때 future에 값이 담김
+
+        /*comment
+        *  join() 은 현재 메인 흐름의 요청 스레드를 멈춰세우고
+        *  Future 결과가 채워질 때까지 기다린다
+        *  즉, @Async 메서드의 결과가 도출될 때까지 기다린다고 생각하면 된다
+        *  ---
+        *  그러나 이러면 비동기를 쓰는 의미가 있나 ? -> 꼭 필요하면 get() 메서드를 사용
+        *  ---
+        *  get() : 예외처리가 필수적이다.
+        *  실무에서는 조인을 활용하는 거보다 예외처리가 강제적인 get(timeout, unit) 형식으로 작성해서
+        *  최대 대기 기간을 설정하여 timeout 시 비동기 결과를 기다리지 않고 메인 흐름으로 넘어가는 방식을 사용한다.
+        *  = 기다리긴 할건데 내가 정한 만큼만 기다릴거고 그 시간 안에 너가 값을 그 안에 안 주면 나는 throw 할거야  */
+
+        String summary = future.join();
+
+        log.info("[section03] 수강 완료 요청 대기 종료 / 작업 처리 중인 스레드 Thread ={}",Thread.currentThread().getName());
+
+        return CompletionSummaryResponse.completed(
+                "메인 흐름 완료. 비동기 수강 요약 생성을 join() 으로 대기함 ! ",
+                summary,
                 start
         );
     }

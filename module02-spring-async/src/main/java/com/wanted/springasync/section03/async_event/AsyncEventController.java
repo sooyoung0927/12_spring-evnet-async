@@ -27,4 +27,14 @@ public class AsyncEventController{
     public CompletionSummaryResponse summary(@PathVariable Long enrollmentId){
         return asyncEventService.requestCompletionSummary(enrollmentId);
     }
+
+
+    /*comment
+    *  메인흐름에서 비동기 작업의 결과가 응답 시에 꼭 필요하다면
+    *  join() 으로 기다린 뒤 응답할 수 있다
+    *  단, join() 을 쓰게 되면 작업 수행 시간만큼 응답 시간이 길어진다 */
+    @PostMapping("/enrollments/{enrollmentId}/completion-summary/wait")
+    public CompletionSummaryResponse summaryWait(@PathVariable Long enrollmentId){
+        return asyncEventService.waitrequestCompletionSummary(enrollmentId);
+    }
 }
