@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Service
 @Slf4j
@@ -87,7 +90,7 @@ public class AsyncEventService {
         );
     }
 
-    public CompletionSummaryResponse waitrequestCompletionSummary(Long enrollmentId) {
+    public CompletionSummaryResponse waitrequestCompletionSummary(Long enrollmentId)  {
 
         long start = System.currentTimeMillis();
 
@@ -110,7 +113,20 @@ public class AsyncEventService {
         *  최대 대기 기간을 설정하여 timeout 시 비동기 결과를 기다리지 않고 메인 흐름으로 넘어가는 방식을 사용한다.
         *  = 기다리긴 할건데 내가 정한 만큼만 기다릴거고 그 시간 안에 너가 값을 그 안에 안 주면 나는 throw 할거야  */
 
-        String summary = future.join();
+//        String summary = future.join();
+        String summary = null;
+        try {
+            summary = future.get(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) { //외부에서 그 스레드를 강제로 중단시켰을 때 발생
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) { //비동기 작업 내부에서 예외가 터졌을 때 발생
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            log.warn("[section03] 비동기 작업 타임아웃, enrollmentId={}", enrollmentId);
+            return CompletionSummaryResponse.accepted("타임아웃으로 백그라운드 처리 중", start);
+        }
+
+
 
         log.info("[section03] 수강 완료 요청 대기 종료 / 작업 처리 중인 스레드 Thread ={}",Thread.currentThread().getName());
 
